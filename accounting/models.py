@@ -1,5 +1,6 @@
 from django.db import models
 from hashlib import sha256
+import datetime
 # Create your models here.
 
 class Account(models.Model):
@@ -23,7 +24,29 @@ class Account(models.Model):
                 sum = transaction.amount
             else:
                 sum += transaction.amount
-        return sum 
+        return sum
+    
+    def end_of_month_balance(self, year: int, month: int, tags: list = []) -> float:
+        """
+        Calculate the balance up to the first day of the next month, optionally filtered by tag names (strings).
+        """
+        first_day_next_month = datetime.datetime(year, month, 1) + datetime.timedelta(days=31)
+        first_day_next_month = first_day_next_month.replace(day=1)
+        # Filter by tag names if provided
+        if tags:
+            all_transactions = self.transactions.filter(date__lt=first_day_next_month, transaction_tags__name__in=tags).order_by('date')
+        else:
+            all_transactions = self.transactions.filter(date__lt=first_day_next_month).order_by('date')
+
+        sum = 0
+        for transaction in all_transactions:
+            if transaction.transaction_type == 'balance':
+                sum = transaction.amount
+            else:
+                sum += transaction.amount
+        return float(sum)
+
+
     
 
 ## TransactionCategory

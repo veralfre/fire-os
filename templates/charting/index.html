@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monthly Progression Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .chart-container {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            box-sizing: border-box;
+        }
+        #progressionChart {
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 2 / 1;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h2>Monthly Progression for Each Account</h2>
+    <div class="chart-container">
+        <canvas id="progressionChart"></canvas>
+    </div>
+    <h2>Monthly Progression for CORE Accounts</h2>
+    <div class="chart-container">
+        <canvas id="coreChart"></canvas>
+    </div>
+    <script>
+        // Data passed from Django view
+        const chartData = {{ chart_data|safe }};
+        const labels = chartData.labels;
+        const datasets = chartData.datasets;
+
+        const ctx = document.getElementById('progressionChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: {
+                        display: true,
+                        text: 'Monthly Progression for Each Account'
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Month' } },
+                    y: { title: { display: true, text: 'Balance' } }
+                }
+            }
+        });
+
+        // Second chart for CORE tags
+        const coreChartData = {{ core_chart_data|safe }};
+        const coreLabels = coreChartData.labels;
+        const coreDatasets = coreChartData.datasets;
+
+        const coreCtx = document.getElementById('coreChart').getContext('2d');
+        new Chart(coreCtx, {
+            type: 'line',
+            data: {
+                labels: coreLabels,
+                datasets: coreDatasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: {
+                        display: true,
+                        text: 'Monthly Progression for CORE'
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Month' } },
+                    y: { title: { display: true, text: 'Balance' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
