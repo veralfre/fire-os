@@ -1,9 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Monthly Progression Chart</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; }
         .chart-container {
@@ -12,11 +16,14 @@
             margin: auto;
             box-sizing: border-box;
         }
-        #progressionChart {
+        #progressionChart, #coreChart {
             width: 100% !important;
             height: auto !important;
             aspect-ratio: 2 / 1;
             display: block;
+        }
+        .table-container {
+            margin-top: 40px;
         }
     </style>
 </head>
@@ -29,6 +36,7 @@
     <div class="chart-container">
         <canvas id="coreChart"></canvas>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Data passed from Django view
         const chartData = {{ chart_data|safe }};
