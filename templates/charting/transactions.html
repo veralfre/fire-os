@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Monthly Progression Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            box-sizing: border-box;
+        }
+
+        #progressionChart,
+        #coreChart {
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 2 / 1;
+            display: block;
+        }
+
+        .table-container {
+            margin-top: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>All Transactions</h2>
+    <div class="table-container">
+        <table id="transactionsTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Account</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Tags</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in page_obj %}
+                <tr>
+                    <td>{{ tx.date|date:'Y-m-d H:i' }}</td>
+                    <td>{{ tx.account.name }}</td>
+                    <td>{{ tx.amount }}</td>
+                    <td>{{ tx.transaction_type }}</td>
+                    <td>{{ tx.description }}</td>
+                    <td>{% for tag in tx.transaction_tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                {% endif %}
+                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                {% endif %}
+            </div>
+        </table>
+    </div>
+    <script>
+        $(document).ready(function () {
+            // Add column search inputs
+            $('#transactionsTable thead tr').clone(true).appendTo('#transactionsTable thead');
+            $('#transactionsTable thead tr:eq(1) th').each(function (i) {
+                $(this).html('<input type="text" placeholder="Search" style="width:100%"/>');
+                $('input', this).on('keyup change', function () {
+                    if ($('#transactionsTable').DataTable().column(i).search() !== this.value) {
+                        $('#transactionsTable').DataTable().column(i).search(this.value).draw();
+                    }
+                });
+            });
+
+            $('#transactionsTable').DataTable({
+                order: [[0, 'desc']],
+                searching:true,
+            });
+        });
+    </script>
+</body>
+
+</html>
