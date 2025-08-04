@@ -75,3 +75,5 @@ def index(request):
         'core_chart_data': json.dumps(core_chart_data),
     })
 
+def avg(request):
+    return render(request, 'charting/avg.html', {})
