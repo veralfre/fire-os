@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Average Transaction Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2>Average Transaction Amounts</h2>
+    <canvas id="avgChart" width="800" height="400"></canvas>
+    <script>
+    async function fetchData() {
+        const response = await fetch('http://localhost:8000/accounts/api/average');
+        const result = await response.json();
+        return result.data || [];
+    }
+
+    function groupByCategory(data) {
+        const grouped = {};
+        data.forEach(item => {
+            const cat = item.cat || 'Unknown';
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(item);
+        });
+        return grouped;
+    }
+
+    function prepareChartData(grouped) {
+        // Collect all unique period labels
+        const labelSet = new Set();
+        Object.values(grouped).forEach(items => {
+            items.forEach(i => {
+                if (i.year && i.month) labelSet.add(`${i.year}-${String(i.month).padStart(2, '0')}`);
+                else if (i.year) labelSet.add(`${i.year}`);
+            });
+        });
+        const labels = Array.from(labelSet).sort();
+
+        const datasets = [];
+        const colors = [
+            'rgba(75, 192, 192, 0.6)',
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(255, 206, 86, 0.6)',
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(153, 102, 255, 0.6)',
+            'rgba(255, 159, 64, 0.6)'
+        ];
+        let colorIdx = 0;
+        Object.entries(grouped).forEach(([cat, items]) => {
+            // Map period to avg_amount for this category
+            const periodMap = {};
+            items.forEach(i => {
+                let period = '';
+                if (i.year && i.month) period = `${i.year}-${String(i.month).padStart(2, '0')}`;
+                else if (i.year) period = `${i.year}`;
+                periodMap[period] = parseFloat(i.avg_amount);
+            });
+            // Build data array aligned to labels
+            const data = labels.map(l => periodMap[l] !== undefined ? periodMap[l] : null);
+            datasets.push({
+                label: cat,
+                data: data,
+                backgroundColor: colors[colorIdx % colors.length],
+                borderColor: colors[colorIdx % colors.length],
+                fill: false,
+            });
+            colorIdx++;
+        });
+        return { labels, datasets };
+    }
+
+    async function renderChart() {
+        const data = await fetchData();
+        const grouped = groupByCategory(data);
+        const chartData = prepareChartData(grouped);
+        const ctx = document.getElementById('avgChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: chartData.datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Average Transaction Amounts by Category' }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Period' },
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 12
+                        }
+                    },
+                    y: {
+                        title: { display: true, text: 'Average Amount' },
+                        beginAtZero: false,
+                        suggestedMin: null,
+                        suggestedMax: null,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    renderChart();
+    </script>
+</body>
+</html>
