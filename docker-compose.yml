@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    container_name: fireos-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./db.sqlite3:/app/db.sqlite3
+    command: gunicorn fire_os.wsgi:application --bind 0.0.0.0:8000 --workers=3 --threads=2 --worker-class=gthread --timeout=60 --log-level=debug
+    environment:
+      - DJANGO_SETTINGS_MODULE=fire_os.settings
+  frontend:
+    build:
+      context: ./frontend
+    container_name: fireos-frontend
+    ports:
+      - "5173:5173"
+    working_dir: /app
+    command: npm run dev -- --host
+    volumes:
+      - ./frontend:/app
+    environment:
+      - NODE_ENV=development

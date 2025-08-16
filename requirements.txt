@@ -1,0 +1,4 @@
+# Backend dependencies
+Django>=5.0
+django-cors-headers
+gunicorn
